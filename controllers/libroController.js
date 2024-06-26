@@ -31,20 +31,25 @@ exports.obtenerLibros = async (req, res) => {
 exports.actualizarLibro = async (req, res) => {
   try {
     const { libro_id } = req.params;
-    let libro = await Libro.findById(req.params.libro_id);
-    //const libro = await Libro.findByPk(libro_id);
+    //add const
+    const { titulo, autor, descripcion, precio, stock, categoria_id } = req.body;
+
+    //usa findByPk(Sequelize) en lugar de findOne
+    let libro = await Libro.findByPk(libro_id)
 
     if (!libro) {
       res.status(404).json({ msg: 'No existe el libro' });
     }
     
-    libro.titulo = titulo;
-    libro.autor = autor;
-    libro.descripcion = descripcion;
-    libro.precio = precio;
-    libro.stock = stock;
-    libro.categoria_id = categoria_id;
-    libro = await Libro.findOneAndUpdate({ _id: libro_id }, libro, { new: true });
+    //usa update en lugar de save para actualizar
+    await libro.update({
+      titulo,
+      autor,
+      descripcion,
+      precio,
+      stock,
+      categoria_id
+    });
 
     res.json(libro);
   } catch (error) {
@@ -55,11 +60,8 @@ exports.actualizarLibro = async (req, res) => {
 
 exports.obtenerLibro = async (req, res) => {
   try {
-    let libro = await Libro.findById(req.params.libro_id);
-    //estaba como findByPk
-    // const libro = await Libro.findByPk(libro_id, {
-    //   include: [{ model: Categoria, as: 'Categoria' }]
-    // });
+
+    let libro = await Libro.findByPk(req.params.libro_id);
 
     if (!libro) {
       res.status(404).json({ msg: 'No existe el libro' });
@@ -71,20 +73,31 @@ exports.obtenerLibro = async (req, res) => {
   }
 };
 
+// Obtener todos los libros
+exports.obtenerLibros = async (req, res) => {
+  try {
+    const libros = await Libro.findAll({
+      include: [{ model: Categoria, as: 'Categoria', attributes: ['nombre'] }]
+    });
+    res.json(libros);
+  } catch (error) {
+    console.log(error);
+    res.status(500).send('Hubo un error');
+  }
+};
+
 exports.eliminarLibro = async (req, res) => {
   try {
 
-    let libro = await Libro.findById(req.params.libro_id);
-    // const { libro_id } = req.params;
-    // const libro = await Libro.findByPk(libro_id);
+    let libro = await Libro.findByPk(req.params.libro_id);
 
     if (!libro) {
       res.status(404).json({ msg: 'No existe el libro' });
     }
-
-    await libro.findByIdAndDelete({ libro_id: req.params.libro_id });
+    //de findOneAndDelete a destroy
+    await libro.destroy({ libro_id: req.params.libro_id });
     res.json({ msg: 'Libro eliminado correctamente' });
-    
+
   } catch (error) {
     console.log(error);
     res.status(500).send('Hubo un error');

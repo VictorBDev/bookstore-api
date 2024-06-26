@@ -31,7 +31,8 @@ const Libro = db.define('Libro', {
     allowNull: false
   }
 }, {
-  tableName: 'libro'
+  tableName: 'libro',
+  timestamps: false  //Esto deshabilitará createdAt y updatedAt
 });
 
 module.exports = Libro;
